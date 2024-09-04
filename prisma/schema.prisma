@@ -1,0 +1,74 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                   String           @id @default(uuid()) @db.Uuid
+  userName             String
+  email                String           @unique
+  position             String
+  department           String
+  role                 String
+  password             String
+  status               String
+  resetPasswordToken   String?
+  resetPasswordExpires DateTime?
+  tokenExpiry          DateTime?
+  roles                Role[]
+  teamManagements      TeamManagement[] @relation("UserTeams")
+  teamManagement       TeamManagement[] @relation("UserTeam")
+  deviceTypes          Json[]           @default([])
+  unrecognizedBrowser  String?
+  loginAttempt         String?
+  mfaEnabled           Boolean          @default(false)
+  mfaSecret            String?
+  otpCode              String?
+  otpExpiry            DateTime?
+  createdAt            DateTime         @default(now())
+  otpSentAt            DateTime?
+
+  @@index([email])
+}
+
+model Permissions {
+  id         String   @id @default(uuid()) @db.Uuid
+  permission String
+  created_at DateTime @default(now())
+
+  @@index([id])
+}
+
+model Role {
+  id          String   @id @default(uuid()) @db.Uuid
+  roleName    String
+  assignPermissions String[] @default([])
+  user        User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String?   @db.Uuid
+  createdAt   DateTime @default(now())
+  status      String   @default("active")
+
+  @@index([id])
+}
+
+model TeamManagement {
+  id                   String   @id @default(uuid()) @db.Uuid
+  teamName             String
+  teamDescription      String
+  region               String
+  members              User[]   @relation("UserTeam")
+  visualRepresentation String
+  teamLeader           String
+  reportingLines       String
+  teamPerformance      Json[]
+  teamActivityLogs     Json[]
+  subteam              User[]   @relation("UserTeams")
+  status               String
+  createdAt            DateTime @default(now())
+
+  @@index([id])
+}
